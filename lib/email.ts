@@ -1,7 +1,5 @@
 import dayjs from 'dayjs';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { transporter } from '@/lib/mailer';
 
 export async function sendTaskAssignmentEmail({
   userEmail,
@@ -17,7 +15,7 @@ export async function sendTaskAssignmentEmail({
   duration?: Date;
 }) {
   try {
-    const { data, error } = await resend.emails.send({
+    const info = await transporter.sendMail({
       from: `TaskBit <${
         process.env.EMAIL_FROM_ADDRESS || 'no-reply@insightedu.cloud'
       } >`,
@@ -103,11 +101,7 @@ export async function sendTaskAssignmentEmail({
       `,
     });
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data;
+    return info;
   } catch (error) {
     console.error('Error sending task assignment email:', error);
     throw error;

@@ -2,10 +2,8 @@
 
 import { prisma } from '@/prisma/db';
 import { catchError, generateUnique6DigitCode } from '@/lib/utils';
-import { Resend } from 'resend';
+import { transporter } from '@/lib/mailer';
 import bcrypt from 'bcryptjs';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendForgotPasswordEmail(data: { email: string }) {
   const { email } = data;
@@ -31,10 +29,8 @@ export async function sendForgotPasswordEmail(data: { email: string }) {
       },
     });
 
-    const { error } = await resend.emails.send({
-      from: `TaskBit <${
-        process.env.EMAIL_FROM_ADDRESS || 'no-reply@insightedu.cloud'
-      } >`,
+    await transporter.sendMail({
+      from: `TaskBit <${process.env.GMAIL_USER || 'no-reply@insightedu.cloud'}>`,
       to: email,
       subject: 'Password Reset Code - TaskBit',
       html: `
@@ -100,11 +96,6 @@ export async function sendForgotPasswordEmail(data: { email: string }) {
         </html>
       `,
     });
-
-    if (error) {
-      console.error('Email sending failed:', error);
-      throw new Error('Failed to send reset email. Please try again.');
-    }
 
     return {
       success: true,
