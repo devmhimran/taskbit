@@ -88,7 +88,10 @@ export const authOptions = {
     error: '/signin',
   },
 
-  secret: process.env.NEXT_PUBLIC_AUTH_SECRET,
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    process.env.NEXT_PUBLIC_AUTH_SECRET ||
+    'taskbit_super_secret_auth_key_0012345',
 
   callbacks: {
     async jwt({
