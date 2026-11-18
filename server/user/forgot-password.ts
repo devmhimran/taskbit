@@ -11,11 +11,25 @@ export async function sendForgotPasswordEmail(data: { email: string }) {
   try {
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, name: true, email: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        status: true,
+        isDeleted: true,
+      },
     });
 
     if (!user) {
       throw new Error('No account found with this email address');
+    }
+
+    if (user.isDeleted) {
+      throw new Error('This account has been deleted. Please contact support.');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new Error('This account is inactive. Please contact support.');
     }
 
     const code = generateUnique6DigitCode();
@@ -111,6 +125,23 @@ export async function verifyOtpCode(data: { code: string; email: string }) {
   const { code, email } = data;
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, status: true, isDeleted: true },
+    });
+
+    if (!user) {
+      throw new Error('No account found with this email address');
+    }
+
+    if (user.isDeleted) {
+      throw new Error('This account has been deleted. Please contact support.');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new Error('This account is inactive. Please contact support.');
+    }
+
     const otpRecord = await prisma.forgotPassword.findUnique({
       where: {
         code: code.toString(),
@@ -164,6 +195,23 @@ export async function resetPassword(data: {
   const { code, newPassword, email } = data;
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, status: true, isDeleted: true },
+    });
+
+    if (!user) {
+      throw new Error('No account found with this email address');
+    }
+
+    if (user.isDeleted) {
+      throw new Error('This account has been deleted. Please contact support.');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new Error('This account is inactive. Please contact support.');
+    }
+
     const otpRecord = await prisma.forgotPassword.findUnique({
       where: {
         code: code.toString(),
